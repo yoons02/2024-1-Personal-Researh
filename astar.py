@@ -1,3 +1,5 @@
+import random
+
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -31,7 +33,6 @@ def astar(maze, start, end):
 
     # Loop until you find the end
     while len(open_list) > 0:
-
         # Get the current node
         current_node = open_list[0]
         current_index = 0
@@ -65,7 +66,7 @@ def astar(maze, start, end):
                 continue
 
             # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] != 0:
+            if maze[node_position[0]][node_position[1]] == 1:
                 continue
 
             # Create new node
@@ -96,24 +97,112 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
+def find_cuav(state):
+    cuav = random.choice([True, False])
+    if cuav is True:
+        print("CUAV is exist!")
+        f_b = random.choice([1, -1])
+        l_r = random.choice([1, -1])
+
+        cuav_position = tuple(sum(elem) for elem in zip(state, (f_b, l_r)))
+
+        return cuav_position
+    
+def maze_update(maze, cuav_position):
+    rowCol = 15
+    maze = [[0] * rowCol for _ in range(rowCol)]
+    x, y = cuav_position  # Extracting x and y coordinates
+    maze[x][y] = 1 # CUAV position
+
+    # Draw policy
+    # all okay
+    if x+1 < rowCol and y+1 < rowCol:
+        maze[x + 1][y] = 1
+        maze[x][y + 1] = 1
+        maze[x + 1][y + 1] = 1
+
+    if x-1 >= 0 and y-1 >= 0:
+        maze[x - 1][y] = 1
+        maze[x][y - 1] = 1
+        maze[x - 1][y - 1] = 1
+
+    if x+1 < rowCol and y-1 >= 0:
+        maze[x][y - 1] = 1
+        maze[x + 1][y - 1] = 1
+        maze[x + 1][y] = 1
+        maze[x - 1][y - 1] = 1
+
+    if x-1 >= 0 and y+1 < rowCol:
+        maze[x - 1][y] = 1
+        maze[x][y + 1] = 1
+        maze[x - 1][y + 1] = 1
+        maze[x][y - 1] = 1
+
+    if x+1 < rowCol and x-1 >= 0 and y+1 < rowCol and y-1 >= 0:
+        maze[x + 1][y] = 1
+        maze[x][y + 1] = 1
+        maze[x - 1][y] = 1
+        maze[x][y - 1] = 1
+        maze[x + 1][y + 1] = 1
+        maze[x - 1][y - 1] = 1
+        maze[x + 1][y - 1] = 1
+        maze[x - 1][y + 1] = 1
+
+    return maze
+
+
 def main():
 
-    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    maze = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    start = (0, 0)
-    end = (7, 6)
+    start = (3, 2)
+    end = (13, 12)
+    
+    s_i, s_j = start
+    e_i, e_j = end
 
     path = astar(maze, start, end)
-    print(path)
+    print(f"Navigation path: {path}")
+
+    i = 0
+
+    while True:
+        print(f"UAV flight.. Current: {path[i]}")
+        cuav_position = find_cuav(path[i])
+        print(f"CUAV: {cuav_position}")
+        if cuav_position is not None:
+            maze = maze_update(maze, cuav_position)
+            a, b = path[i]
+            maze[a][b] = 3 # BCUAV position
+            maze[s_i][s_j] = 5
+            maze[e_i][e_j] = 7
+            path = astar(maze, path[i], end)
+            print(f"Navigation path: {path}")
+            for row in maze:
+                print(row)
+            i = -1
+
+        i += 1
+
+        if path[i] == end:
+            print(f"Complete: {path[i]}")
+            break
+
+    print("Done")
 
 
 if __name__ == '__main__':
