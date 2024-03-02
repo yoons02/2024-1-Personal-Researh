@@ -132,6 +132,18 @@ def astar(maze, start, end):
             # Add the child to the open list
             open_list.append(child)
 
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+def sort_three_numbers(a, b, c):
+    sorted_numbers = quick_sort([a, b, c])
+    return sorted_numbers
 
 # Create a variale to control the Tello Drone
 maverick = tello.Tello()
@@ -156,8 +168,22 @@ maverick.set_speed(50)
 bcuav_x = 0
 bcuav_y = 0
 bcuav_z = maverick.get_height()
+
 dest_position = '1230.860.100'
-dest_position.split('.')
+x = dest_position.split('.')
+dest_x = int(x[0])
+dest_y = int(x[1])
+dest_z = int(x[2])
+
+# Ascending order quick sort algorithm
+sorted_nums = sort_three_numbers(dest_x, dest_y, dest_z)
+
+# Largest value
+max_len = x[2]
+nodes_per_side = max_len / 20
+
+# Create 3-dimensional maze
+maze = np.zeros((nodes_per_side, nodes_per_side, nodes_per_side))
 
 # Import YOLO model
 model = YOLO('best.pt')

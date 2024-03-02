@@ -1,22 +1,24 @@
-import numpy as np
-import math
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
 
-alpha = (0,1,0)
+def sort_three_numbers(a, b, c):
+    sorted_numbers = quick_sort([a, b, c])
+    return sorted_numbers
 
-beta = (0,-1,0)
+# 테스트
+dest_position = '1230.860.100'
+x = dest_position.split('.')
+print(x)
 
-# Calculate the dot product of alpha and beta
-dot_product = np.dot(alpha, beta)
+num1 = int(x[0])
+num2 = int(x[1])
+num3 = int(x[2])
 
-# Calculate the magnitudes of alpha and beta
-magnitude_alpha = np.linalg.norm(alpha)
-magnitude_beta = np.linalg.norm(beta)
-
-# Calculate the cosine of the angle between the vectors
-cos_theta = dot_product / (magnitude_alpha * magnitude_beta)
-
-# Calculate the angle in radians
-theta = math.acos(cos_theta)
-
-print(math.degrees(theta))
-print(theta)
+sorted_nums = sort_three_numbers(num1, num2, num3)
+print("Sorted Numbers:", sorted_nums)
