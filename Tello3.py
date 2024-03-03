@@ -3,6 +3,7 @@ import math
 import numpy as np
 from ultralytics import YOLO
 import cv2
+import time
 
 class Node():
     """A node class for A* Pathfinding"""
@@ -145,6 +146,39 @@ def sort_three_numbers(a, b, c):
     sorted_numbers = quick_sort([a, b, c])
     return sorted_numbers
 
+# Move to next node
+def next_node(self, path, k):
+    # One rotation N one node when there is no CUAV, 
+    # One rotation 2N node when there is CUAV
+    nodes_per_rotate = 1
+    for j in range(0, nodes_per_rotate):
+        current_x, current_y, current_z = path[k]
+        next_x, next_y, next_z = path[k+1]
+        dif_x, dif_y, dif_z = next_x - current_x, next_y - current_y, next_z - current_z
+
+        # x direction
+        if dif_x != 0 and dif_y == 0 and dif_z == 0:
+            if dif_x > 0:
+                self.move_forward(20)
+            else:
+                self.move_back(20)
+
+        # y direction
+        if dif_y != 0 and dif_x == 0 and dif_z == 0:
+            if dif_y > 0:
+                self.move_right(20)
+            else:
+                self.move_left(20)
+
+        # z direction
+        if dif_z != 0 and dif_x == 0 and dif_y == 0:
+            if dif_z > 0:
+                self.move_up(20)
+            else:
+                self.move_down(20)
+
+        
+
 # Create a variale to control the Tello Drone
 maverick = tello.Tello()
 print(maverick.get_battery())
@@ -169,21 +203,37 @@ bcuav_x = 0
 bcuav_y = 0
 bcuav_z = maverick.get_height()
 
-dest_position = '1230.860.100'
-x = dest_position.split('.')
-dest_x = int(x[0])
-dest_y = int(x[1])
-dest_z = int(x[2])
+end_position = '1230.860.100'
+x = end_position.split('.')
+end_x = int(x[0])
+end_y = int(x[1])
+end_z = int(x[2])
 
 # Ascending order quick sort algorithm
-sorted_nums = sort_three_numbers(dest_x, dest_y, dest_z)
+sorted_nums = sort_three_numbers(end_x, end_y, end_z)
 
 # Largest value
 max_len = x[2]
-nodes_per_side = max_len / 20
+
+# Length per node = 20cm
+nodes_per_side = max_len*1.3 / 20
 
 # Create 3-dimensional maze
 maze = np.zeros((nodes_per_side, nodes_per_side, nodes_per_side))
+
+# start position sign: 5
+# destination position sign: 7
+# CUAV sign: 1
+start_node_x, start_node_y, start_node_z = bcuav_x/20, bcuav_y/20, bcuav_z/20
+end_node_x, end_node_y, end_node_z = end_x/20, end_y/20, end_z/20
+maze[start_node_x][start_node_y][start_node_z] = 5
+maze[end_node_x][end_node_y][end_node_z] = 7
+
+start = (start_node_x, start_node_y, start_node_z)
+end = (end_node_x, end_node_y, end_node_z)
+
+path = astar(maze, start, end)
+k = 0 # step
 
 # Import YOLO model
 model = YOLO('best.pt')
@@ -191,38 +241,56 @@ model = YOLO('best.pt')
 # Read camera frame
 cap = cv2.VideoCapture(0)
 
-# One rotation N one node when there is no CUAV, 
-# One rotation 2N node when there is CUAV
-nodes_per_rotate = 1
-
 while cap.isOpened():
 
     # Read a frame from the video
     success, frame = cap.read()
     if success:
         results = model(frame)
+        tag = 0
 
-        # If there's a CUAV
-        if results:
-            for result in results:
-                boxes = result.boxes
-                for box in boxes:
-                    cuav = box.xywh
-                    cuav.reshape(1, 4)
-                    print("Warning: CUAV is here!")
-                    print(f"BCAUV yaw: {maverick.get_yaw()}")
-                    print(f"Coordinates (x, y): {cuav[0][0]}, {cuav[0][1]}")
-                    print(f"Size (w, h): {cuav[0][2]}, {cuav[0][3]}")
-                    print("Class:", box.cls.item())
+        # Move to next node
+        next_node(maverick, path, k)
+        k += 1 # step +1
 
-                    # Calculate drone size
-
-                    # point in maze and path planning
-
-        # else
-        else:
-            maverick.move_forward(20)
+        for i in range(0, 4):
             maverick.rotate_clockwise(90)
+            tag = (tag+1) % 4
+            # If there's a CUAV
+            if results:
+
+                for result in results:
+                    boxes = result.boxes
+                    for box in boxes:
+                        cuav = box.xywh
+                        cuav.reshape(1, 4)
+                        print("Warning: CUAV is here!")
+                        print(f"BCAUV yaw: {maverick.get_yaw()}")
+                        print(f"Coordinates (x, y): {cuav[0][0]}, {cuav[0][1]}")
+                        print(f"Size (w, h): {cuav[0][2]}, {cuav[0][3]}")
+                        print("Class:", box.cls.item())
+
+                        # Calculate drone size
+
+                        # point in maze (3*3*3 dangerous zone)
+                        # maze update
+
+                # path planning
+                path = astar(maze, path[k], end)
+                k = 0 # step initialization
+                        
+                # Look forward
+                maverick.rotate_counter_clockwise(90*tag) 
+                # Move to next node  
+                next_node(maverick, path, k)
+                k += 1 # step +1
+                break
+
+        if path[k] == end:
+            print("Mission Complete")
+            break      
+
 
 # Land the drone
+maverick.streamoff()
 maverick.land()
