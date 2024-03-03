@@ -177,7 +177,26 @@ def next_node(self, path, k):
             else:
                 self.move_down(20)
 
-        
+def maze_update(maze, cuav_position, nodes_per_sides):
+    rowCol = nodes_per_sides
+    maze = np.zeros((nodes_per_side, nodes_per_side, nodes_per_side))
+    x, y, z = cuav_position  # Extracting x and y coordinates
+    maze[x][y][z] = 2 # CUAV position
+
+    # Define the deltas for adjacent cells
+    deltas = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (-1, 0, 0), (0, -1, 0), (0, 0, -1), 
+              (1, 1, 0), (-1, -1, 0), (1, -1, 0), (-1, 1, 0), 
+              (1, 0, 1), (-1, 0, 1), (1, 0, -1), (-1, 0, -1), 
+              (0, 1, 1), (0, -1, 1), (0, 1, -1), (0, -1, -1), 
+              (1, 1, 1), (-1, -1, -1), (1, -1, 1), (-1, 1, -1)]
+
+    # Draw policy
+    for dx, dy, dz in deltas:
+        new_x, new_y, new_z = x + dx, y + dy, z + dz
+        if 0 <= new_x < rowCol and 0 <= new_y < rowCol and 0 <= new_z < rowCol:
+            maze[new_x][new_y][new_z] = 1
+
+    return maze
 
 # Create a variale to control the Tello Drone
 maverick = tello.Tello()
@@ -238,6 +257,10 @@ k = 0 # step
 # Import YOLO model
 model = YOLO('best.pt')
 
+# Constant value for calculate distance between BCUAV and CUAV
+f = # camera focal length
+h = 
+
 # Read camera frame
 cap = cv2.VideoCapture(0)
 
@@ -265,15 +288,17 @@ while cap.isOpened():
                         cuav = box.xywh
                         cuav.reshape(1, 4)
                         print("Warning: CUAV is here!")
-                        print(f"BCAUV yaw: {maverick.get_yaw()}")
+                        print(f"BCUAV yaw: {maverick.get_yaw()}")
                         print(f"Coordinates (x, y): {cuav[0][0]}, {cuav[0][1]}")
                         print(f"Size (w, h): {cuav[0][2]}, {cuav[0][3]}")
                         print("Class:", box.cls.item())
 
-                        # Calculate drone size
+                        # Calculate drone size and position
+                        # cuav_position = ( , , )
 
                         # point in maze (3*3*3 dangerous zone)
                         # maze update
+                        maze_update(maze, cuav_position, nodes_per_side)
 
                 # path planning
                 path = astar(maze, path[k], end)

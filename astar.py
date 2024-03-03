@@ -66,7 +66,7 @@ def astar(maze, start, end):
                 continue
 
             # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] == 1:
+            if maze[node_position[0]][node_position[1]] == 1 or maze[node_position[0]][node_position[1]] == 2:
                 continue
 
             # Create new node
@@ -112,43 +112,19 @@ def maze_update(maze, cuav_position):
     rowCol = 15
     maze = [[0] * rowCol for _ in range(rowCol)]
     x, y = cuav_position  # Extracting x and y coordinates
-    maze[x][y] = 1 # CUAV position
+    maze[x][y] = 2 # CUAV position
+
+    # Define the deltas for adjacent cells
+    deltas = [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]
 
     # Draw policy
-    # all okay
-    if x+1 < rowCol and y+1 < rowCol:
-        maze[x + 1][y] = 1
-        maze[x][y + 1] = 1
-        maze[x + 1][y + 1] = 1
-
-    if x-1 >= 0 and y-1 >= 0:
-        maze[x - 1][y] = 1
-        maze[x][y - 1] = 1
-        maze[x - 1][y - 1] = 1
-
-    if x+1 < rowCol and y-1 >= 0:
-        maze[x][y - 1] = 1
-        maze[x + 1][y - 1] = 1
-        maze[x + 1][y] = 1
-        maze[x - 1][y - 1] = 1
-
-    if x-1 >= 0 and y+1 < rowCol:
-        maze[x - 1][y] = 1
-        maze[x][y + 1] = 1
-        maze[x - 1][y + 1] = 1
-        maze[x][y - 1] = 1
-
-    if x+1 < rowCol and x-1 >= 0 and y+1 < rowCol and y-1 >= 0:
-        maze[x + 1][y] = 1
-        maze[x][y + 1] = 1
-        maze[x - 1][y] = 1
-        maze[x][y - 1] = 1
-        maze[x + 1][y + 1] = 1
-        maze[x - 1][y - 1] = 1
-        maze[x + 1][y - 1] = 1
-        maze[x - 1][y + 1] = 1
+    for dx, dy in deltas:
+        new_x, new_y = x + dx, y + dy
+        if 0 <= new_x < rowCol and 0 <= new_y < rowCol:
+            maze[new_x][new_y] = 1
 
     return maze
+
 
 
 def main():
@@ -169,8 +145,8 @@ def main():
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    start = (3, 2)
-    end = (13, 12)
+    start = (1, 1)
+    end = (13, 13)
     
     s_i, s_j = start
     e_i, e_j = end
@@ -188,6 +164,7 @@ def main():
             maze = maze_update(maze, cuav_position)
             a, b = path[i]
             maze[a][b] = 3 # BCUAV position
+            print(f"BCUAV position: {(a, b)}")
             maze[s_i][s_j] = 5
             maze[e_i][e_j] = 7
             path = astar(maze, path[i], end)
