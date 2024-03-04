@@ -1,3 +1,17 @@
+"""
+****************Tello specs****************
+pixel: 5MP
+size(include propeller): 171*178*41mm
+resolution:
+- video: HD720P30 (1280*720px)
+- photo: 2592x1936px
+FOV: 82.6°
+focal length: 1.98mm
+maximum flight time: 13 minutes
+maximum flight distance: 100m
+*******************************************
+"""
+
 from djitellopy import tello
 import math
 import numpy as np
